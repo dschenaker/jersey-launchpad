@@ -108,7 +108,7 @@ export default function App() {
         ) : (
           <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {products.map(p => (
-              <article key={p.id} className="rounded-3xl overflow-hidden bg-white/5 backdrop-blur ring-1 ring-white/10 hover:ring-white/20 transition">
+              <article key={p.id} onClick={() => { const url = p.stripeLink || p.squareLink; if(url) window.open(url, "_blank"); }} className="rounded-3xl cursor-pointer overflow-hidden bg-white/5 backdrop-blur ring-1 ring-white/10 hover:ring-white/20 transition">
                 <img src={p.image || "/images/placeholder.jpg"} alt={p.name} className="w-full aspect-[4/3] object-cover" />
                 <div className="p-5">
                   <h3 className="text-xl font-semibold">{p.name}</h3>
@@ -135,16 +135,6 @@ export default function App() {
       </section>
 
       {/* Work / gallery */}
-      <section id="work" className="max-w-6xl mx-auto px-4 pb-16">
-        <h2 className="text-3xl sm:text-4xl font-bold">Recent Projects</h2>
-        <p className="text-slate-300">Game-day ready kits delivered fast.</p>
-        <div className="mt-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1,2,3,4,5,6].map(i => (
-            <img key={i} src={`/images/case-${i}.jpg`} alt="Case study" className="rounded-2xl ring-1 ring-white/10 hover:ring-white/20 transition" />
-          ))}
-        </div>
-      </section>
-
       {/* Contact */}
       <section id="contact" className="max-w-6xl mx-auto px-4 pb-24">
         <div className="bg-white/5 rounded-3xl p-6 ring-1 ring-white/10">
