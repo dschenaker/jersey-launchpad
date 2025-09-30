@@ -1,5 +1,17 @@
 import React, { useEffect, useMemo, useState } from "react";
 
+// Resolve image from product record.
+// - Accepts full https:// URLs as-is
+// - Otherwise prefixes /images/ (served from public/images)
+// - Encodes spaces and special chars
+function imgSrcFor(p) {
+  const raw =
+    (p && (p.imageURL || p.image || p.img || p.photo || p.picture)) || "";
+  const looksLikeUrl = /^https?:\/\//i.test(raw);
+  const src = looksLikeUrl ? raw : `/images/${raw}`;
+  return encodeURI(src);
+}
+
 function useQuery() {
   const [q, setQ] = useState(new URLSearchParams(window.location.search));
   useEffect(() => {
@@ -117,7 +129,11 @@ export default function App() {
           <div className="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {products.map(p => (
               <article key={p.id} onClick={() => { const url = p.stripeLink || p.squareLink; if(url) window.open(url, "_blank"); }} className="rounded-3xl cursor-pointer overflow-hidden bg-white/5 backdrop-blur ring-1 ring-white/10 hover:ring-white/20 transition">
-                <img src={p.image || "/images/placeholder.jpg"} alt={p.name} className="w-full aspect-[4/3] object-cover" />
+                <img
+                  src={imgSrcFor(p)}
+                  alt={p.name}
+                  className="w-full h-56 rounded-3xl object-cover"
+                />
                 <div className="p-5">
                   <h3 className="text-xl font-semibold">{p.name}</h3>
                   <p className="text-slate-300 text-sm">{p.tagline || ""}</p>
