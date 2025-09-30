@@ -1,21 +1,28 @@
 const { Client } = require("@notionhq/client");
 
-// Map filename or subpath -> /Images/...; keep absolute/URL as-is
+// Map filename/subpath -> /images/... (lowercase to match your repo)
+// - full URLs are preserved
+// - absolute site paths starting with "/" are preserved (and encoded)
 function normalizeImage(val) {
-  if (!val) return "/Images/placeholder.jpg";
+  if (!val) return "/images/placeholder.jpg";
   const s = String(val).trim();
-  if (/^https?:\/\//i.test(s)) return s;       // full URL
-  if (s.startsWith("/")) return encodeURI(s);   // absolute site path
-  return encodeURI(`/Images/${s}`);             // filename or team path
+  if (/^https?:\/\//i.test(s)) return s;        // external URL
+  if (s.startsWith("/")) return encodeURI(s);    // absolute site path
+  return encodeURI(`/images/${s}`);              // filename or subfolder/filename
 }
 
 exports.handler = async () => {
   const token = process.env.NOTION_TOKEN;
-  const db = process.env.NOTION_PRODUCTS_DB;
+  // Accept NOTION_PRODUCTS_DB or NOTION_DB (either name works)
+  const db = process.env.NOTION_PRODUCTS_DB || process.env.NOTION_DB;
 
-  // If Notion not configured, signal the frontend to use fallback JSON
+  // If Notion not configured, tell the frontend to fallback to /products.json
   if (!token || !db) {
-    return { statusCode: 404, body: JSON.stringify({ products: [] }) };
+    return {
+      statusCode: 404,
+      headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+      body: JSON.stringify({ products: [], reason: "NOTION env missing" })
+    };
   }
 
   try {
@@ -27,7 +34,6 @@ exports.handler = async () => {
       const res = await notion.databases.query({
         database_id: db,
         start_cursor: cursor
-        // No API filter here; we'll filter client-side so "Status" is optional
       });
       pages.push(...res.results);
       cursor = res.has_more ? res.next_cursor : undefined;
@@ -35,9 +41,7 @@ exports.handler = async () => {
 
     const products = pages
       .map(p => {
-        const s = p.properties;
-
-        // Accept URL, Files & media, Rich text, or Title for image
+        const s = p.properties || {};
         const imageRaw =
           s.ImageURL?.url ||
           s.Image?.files?.[0]?.file?.url ||
@@ -55,14 +59,13 @@ exports.handler = async () => {
           price: s.Price?.number ?? 0,
           tagline: s.Tagline?.rich_text?.[0]?.plain_text || "",
           image: normalizeImage(imageRaw),
-          // handle both StripeLink and StripLink (typo)
           stripeLink: s.StripeLink?.url || s.StripLink?.url || "",
           squareLink: s.SquareLink?.url || "",
           team: (s.Team?.multi_select || []).map(t => t.name),
           status: s.Status?.select?.name || "Active"
         };
       })
-      // If Status exists, only show "Active"; if not present, include
+      // If Status property exists, only show "Active"; if not present, include
       .filter(p => !p.status || p.status === "Active");
 
     return {
@@ -71,7 +74,11 @@ exports.handler = async () => {
       body: JSON.stringify({ products })
     };
   } catch (e) {
-    console.error(e);
-    return { statusCode: 500, body: JSON.stringify({ error: "Failed to load products" }) };
+    // Return the error message so we can see it in the browser (helps debugging 500s)
+    return {
+      statusCode: 500,
+      headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+      body: JSON.stringify({ error: e.message || "Unknown error" })
+    };
   }
 };
