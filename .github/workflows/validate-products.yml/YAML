@@ -1,0 +1,23 @@
+name: Validate catalog
+on:
+  push:
+    paths:
+      - 'public/products.json'
+  pull_request:
+    paths:
+      - 'public/products.json'
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Ensure jq exists (usually preinstalled, but this is safe)
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+      - name: Check products.json shape
+        run: |
+          jq -e '
+            .products and
+            (.products | type=="array") and
+            (all(.products[]; (.name and .price and .image)))
+          ' public/products.json > /dev/null
