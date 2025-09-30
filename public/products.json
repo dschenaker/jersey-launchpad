@@ -1,0 +1,34 @@
+{
+  "products": [
+    {
+      "id": "demo-1",
+      "name": "Demo Jersey",
+      "price": 79,
+      "tagline": "Breathable mesh, pro fit.",
+      "image": "/images/jersey-pro-elite.jpg",
+      "stripeLink": "",
+      "squareLink": "",
+      "team": ["Bulldogs"]
+    },
+    {
+      "id": "demo-2",
+      "name": "Sideline Jacket",
+      "price": 95,
+      "tagline": "Weather-ready. Team colors on point.",
+      "image": "/images/sideline-jacket.jpg",
+      "stripeLink": "",
+      "squareLink": "",
+      "team": ["Eagles"]
+    },
+    {
+      "id": "demo-3",
+      "name": "Fanshop Hoodie",
+      "price": 55,
+      "tagline": "Midweight fleece. Stadium favorite.",
+      "image": "/images/fanshop-hoodie.jpg",
+      "stripeLink": "",
+      "squareLink": "",
+      "team": ["Bulldogs","Eagles"]
+    }
+  ]
+}
