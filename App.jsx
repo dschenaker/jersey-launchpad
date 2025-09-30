@@ -18,19 +18,27 @@ export default function App() {
   const teamFilter = q.get("team");
 
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch("/api/products", { cache: "no-store" });
-        if (!res.ok) throw new Error(String(res.status));
-        const json = await res.json();
-        setItems(json.products || []);
-      } catch {
-        const res2 = await fetch("/products.json", { cache: "no-store" });
-        const json2 = await res2.json();
-        setItems(json2.products || []);
-      } finally { setLoading(false); }
-    })();
-  }, []);
+  (async () => {
+    try {
+      const res = await fetch("/api/products", { cache: "no-store" });
+      if (res.ok) {
+        const j = await res.json();
+        if (Array.isArray(j.products) && j.products.length > 0) {
+          setItems(j.products);
+          setLoading(false);
+          return;
+        }
+      }
+    } catch {}
+    try {
+      const res2 = await fetch("/products.json", { cache: "no-store" });
+      const j2 = await res2.json();
+      setItems(j2.products || []);
+    } finally {
+      setLoading(false);
+    }
+  })();
+}, []);
 
   const products = useMemo(() => {
     if (!teamFilter) return items;
